@@ -4,7 +4,7 @@ MISE_USE_VERSIONS_HOST = "0"
 [tools]
 actionlint = "latest"
 hk = "latest"
-lua = "5.1"
+lua = "5.4"
 pkl = "latest"
 stylua = "latest"
 

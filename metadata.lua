@@ -19,5 +19,5 @@ PLUGIN = { -- luacheck: ignore
     updateUrl = "https://github.com/belltoy/mise-elp",
 
     -- Optional: Minimum mise runtime version required
-    minRuntimeVersion = "0.2.0",
+    minRuntimeVersion = "0.3.0",
 }
