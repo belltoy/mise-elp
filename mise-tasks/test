@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#MISE description="Run plugin tests - install and execute tool"
+set -euo pipefail
+
+mise plugin link --force elp .
+mise cache clear
+mise install elp@1.0.0
+
+version="2025-11-04-otp-26.2"
+
+# Capture and display the output while also verifying it
+output=$(mise exec "elp@${version}" -- "elp" version)
+echo "elp output: $output"
+
+if echo "$output" | grep -q 'elp.*2025-11-04'; then
+    echo "✓ Tests passed"
+else
+    echo "✗ Test failed: expected version elp@${version}"
+    exit 1
+fi
