@@ -3,7 +3,7 @@
 -- Documentation: https://mise.jdx.dev/tool-plugin-development.html#preinstall-hook
 
 -- Helper function for platform detection (uncomment and modify as needed)
-local function get_platform()
+local function get_platform(version_info)
     -- RUNTIME object is provided by mise/vfox
     -- RUNTIME.osType: "Windows", "Linux", "Darwin"
     -- RUNTIME.archType: "amd64", "386", "arm64", etc.
@@ -24,57 +24,85 @@ local function get_platform()
         },
         ["windows"] = {
             ["amd64"] = "windows-x86_64-pc-windows-msvc",
-        }
+        },
     }
 
     local os_map = platform_map[os_name]
     if os_map then
-        return os_map[arch] or "linux-x86_64"  -- fallback
+        return os_map[arch] or error("Architecture " .. arch .. " not supported for OS " .. os_name)
     end
 
-    -- Default fallback
-    return "linux-x86_64"
+    error("OS " .. os_name .. " not supported")
 end
+
+local function fetch_checksum(version_info)
+    local os_name = RUNTIME.osType:lower()
+    local arch = RUNTIME.archType
+
+    local elp_os_name = nil
+    if os_name == "windows" then
+        elp_os_name = "windows"
+    elseif os_name == "linux" then
+        elp_os_name = "linux"
+    elseif os_name == "darwin" then
+        elp_os_name = "macos"
+    end
+
+    local elp_arch = nil
+    if arch == "amd64" then
+        elp_arch = "x86_64"
+    elseif arch == "arm64" then
+        elp_arch = "aarch64"
+    end
+
+    local sha256 = nil
+    if version_info.os[elp_os_name] then
+        if version_info.os[elp_os_name][elp_arch] then
+            sha256 = version_info.os[elp_os_name][elp_arch].sha256 or nil
+        else
+            error("Architecture " .. elp_arch .. " not supported for OS " .. elp_os_name)
+        end
+    else
+        error("OS " .. elp_os_name .. " not supported")
+    end
+    return sha256
+end
+
+local download_base_url = "https://github.com/WhatsApp/erlang-language-platform/releases/download/"
 
 function PLUGIN:PreInstall(ctx)
     local version = ctx.version
-    local otp_version = ctx.opt_version
-    -- ctx.runtimeVersion contains the full version string if needed
+    local lists = self:Available({})
 
-    -- Example 1: Simple binary download
-    -- local url = "https://github.com/<GITHUB_USER>/<GITHUB_REPO>/releases/download/v" .. version .. "/<TOOL>-linux-amd64"
+    if version == "latest" or version == "" then
+        version = lists[1].version
+    end
+    local version_info = nil
+    for _, v in ipairs(lists) do
+        if v.version == version then
+            version_info = v
+            break
+        end
+    end
+    if not version_info then
+        error("Version " .. version .. " not found in available versions.")
+    end
 
-    -- Example 2: Platform-specific binary
-    -- local platform = get_platform() -- Uncomment the helper function above
-    -- local url = "https://github.com/<GITHUB_USER>/<GITHUB_REPO>/releases/download/v" .. version .. "/<TOOL>-" .. platform
+    local otp_version = version:match("^(otp%-.+)%-%d%d%d%d%-%d%d%-%d%d.*$")
+    local release_version = version:match("^otp%-.+%-(%d%d%d%d%-%d%d%-%d%d.*)$")
+    if not otp_version or not release_version then
+        error("Invalid version format: " .. version .. ". Expected format: otp-XX.Y-YYYY-MM-DD_Z")
+    end
 
-    -- Example 3: Archive (tar.gz, zip) - mise will extract automatically
-    -- local url = "https://github.com/<GITHUB_USER>/<GITHUB_REPO>/releases/download/v" .. version .. "/<TOOL>-" .. version .. "-linux-amd64.tar.gz"
+    local platform = get_platform(version_info) -- Uncomment the helper function above
+    local url = download_base_url .. release_version .. "/elp-" .. platform .. "-" .. otp_version .. ".tar.gz"
 
-    -- Example 4: Raw file from repository
-    -- local url = "https://raw.githubusercontent.com/<GITHUB_USER>/<GITHUB_REPO>/" .. version .. "/bin/<TOOL>"
-
-    -- Replace with your actual download URL pattern
-    -- local url = "https://example.com/<TOOL>/releases/download/" .. version .. "/<TOOL>"
-
-    -- https://github.com/WhatsApp/erlang-language-platform/releases/download/2025-11-04/elp-linux-aarch64-unknown-linux-gnu-otp-26.2.tar.gz
-    local platform = get_platform() -- Uncomment the helper function above
-    -- local otp_version = "otp-26.2"  -- Adjust OTP version as needed
-    local url = "https://github.com/WhatsApp/erlang-language-platform/releases/download/" .. version .. "/elp-" .. platform .. "-" .. otp_version .. ".tar.gz"
-
-    -- Optional: Fetch checksum for verification
-    -- local sha256 = fetch_checksum(version) -- Implement if checksums are available
+    local sha256 = fetch_checksum(version_info)
 
     return {
         version = version,
         url = url,
-        sha256 = ctx.addition.sha256, -- Optional but recommended for security
+        sha256 = sha256,
         note = "Downloading elp " .. version,
-        -- addition = { -- Optional: download additional components
-        --     {
-        --         name = "component",
-        --         url = "https://example.com/component.tar.gz"
-        --     }
-        -- }
     }
 end

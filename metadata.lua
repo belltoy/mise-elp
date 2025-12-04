@@ -7,23 +7,17 @@ PLUGIN = { -- luacheck: ignore
     name = "elp",
 
     -- Required: Plugin version (not the tool version)
-    version = "2025-11-04",
+    version = "0.1.0",
 
     -- Required: Brief description of the tool
     description = "A mise tool plugin for elp (The Erlang Language Platform)",
 
     -- Required: Plugin author/maintainer
-    author = "belltoy",
+    author = "Zhongqiu Zhao",
 
     -- Optional: Repository URL for plugin updates
     updateUrl = "https://github.com/belltoy/mise-elp",
 
     -- Optional: Minimum mise runtime version required
     minRuntimeVersion = "0.2.0",
-
-    -- Optional: Legacy version files this plugin can parse
-    -- legacyFilenames = {
-    --     ".<TOOL>-version",
-    --     ".<TOOL>rc"
-    -- }
 }
