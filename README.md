@@ -68,6 +68,9 @@ Refer to the mise docs for detailed information:
 - [Plugin publishing](https://mise.jdx.dev/plugin-publishing.html) - How to publish your plugin
 - [mise-plugins organization](https://github.com/mise-plugins) - Community plugins repository
 
+If you use [asdf](https://asdf-vm.com/), you might be interested in the
+[asdf-elp](https://github.com/belltoy/asdf-elp) plugin.
+
 ## License
 
 MIT
