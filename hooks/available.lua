@@ -40,9 +40,18 @@ function PLUGIN:Available(ctx)
 
     local repo_url = "https://api.github.com/repos/WhatsApp/erlang-language-platform/releases"
 
-    -- mise automatically handles GitHub authentication - no manual token setup needed
+    -- Get GitHub token from environment for rate limiting
+    local github_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+    local headers = {
+        ["Accept"] = "application/vnd.github.v3+json",
+    }
+    if github_token and github_token ~= "" then
+        headers["Authorization"] = "token " .. github_token
+    end
+
     local resp, err = http.get({
         url = repo_url,
+        headers = headers,
     })
 
     if err ~= nil then
