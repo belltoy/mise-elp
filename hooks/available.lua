@@ -41,7 +41,7 @@ function PLUGIN:Available(ctx)
     local repo_url = "https://api.github.com/repos/WhatsApp/erlang-language-platform/releases"
 
     -- Get GitHub token from environment for rate limiting
-    local github_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+    local github_token = os.getenv("MISE_GITHUB_TOKEN") or os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
     local headers = {
         ["Accept"] = "application/vnd.github.v3+json",
     }
