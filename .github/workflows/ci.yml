@@ -19,3 +19,13 @@ jobs:
       - run: mise run ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v3
+      - run: mise run test
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
