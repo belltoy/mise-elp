@@ -18,7 +18,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Commit changes
         run: |
-          git diff --quiet bin/list-aliases && exit 0
+          if git diff --quiet bin/list-aliases; then
+            echo "No changes: bin/list-aliases is already up to date"
+            exit 0
+          fi
           date=$(gh api repos/WhatsApp/erlang-language-platform/releases/latest --jq .tag_name)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
