@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#MISE description="Regenerate bin/list-aliases from the upstream elp releases"
+set -euo pipefail
+
+# For each OTP major, pick the newest release that still ships it, with the highest minor in
+# that release. An OTP dropped by newer releases thus stays pinned to its last release.
+gh api --paginate repos/WhatsApp/erlang-language-platform/releases \
+    --jq '.[] | select(.draft | not) | .tag_name as $t | .assets[].name
+          | capture("-(?<otp>otp-[0-9.]+)\\.tar\\.gz$") | "\($t) \(.otp)"' |
+    sort -u |
+    awk '{ split($2, a, /[-.]/); major = "otp-" a[2]; print major, $1, $2 }' |
+    sort -k1,1 -k2,2r -k3,3Vr |
+    awk '!seen[$1]++ { print "echo \"" $1 " " $3 "-" $2 "\"" }' |
+    {
+        echo '#!/usr/bin/env bash'
+        echo
+        cat
+    } >bin/list-aliases.new
+mv bin/list-aliases.new bin/list-aliases
+chmod +x bin/list-aliases
